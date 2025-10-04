@@ -2,44 +2,91 @@ import fs from "fs";
 import csv from "csv-parser";
 import puppeteer from "puppeteer";
 
-// Input CSV and output JSON
 const inputCsv = "public/SB_publication_PMC.csv";
-const outputJson = "public/abstracts.json";
+const outputJson = "public/abstracts_extended.json";
 
-// Function to fetch abstract from PMC HTML page
-async function fetchAbstractPMC(url) {
+async function fetchSectionsPMC(url) {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: "domcontentloaded" });
 
-  const abstract = await page.evaluate(() => {
-    const anchor = document.querySelector("#abstract1-anchor");
-    if (!anchor) return "";
-    let p = anchor.parentElement.nextElementSibling;
-    let text = "";
-    while (p && p.tagName.toLowerCase() === "p") {
-      text += p.innerText + " ";
-      p = p.nextElementSibling;
+  const data = await page.evaluate(() => {
+    function getAbstract() {
+      const headings = Array.from(document.querySelectorAll("h2, h3"));
+      const h2 = headings.find((h) =>
+        h.innerText.toLowerCase().includes("abstract")
+      );
+      if (h2) {
+        const p = h2.nextElementSibling;
+        if (p && p.tagName.toLowerCase() === "p") {
+          return p.innerText.trim();
+        }
+      }
+      return "";
     }
-    return text.trim();
+
+    function getSectionTextByHeadingKeywords(keywords = []) {
+      const headings = Array.from(document.querySelectorAll("h2, h3, h4"));
+      const heading = headings.find((h) =>
+        keywords.some((k) =>
+          h.innerText.toLowerCase().includes(k.toLowerCase())
+        )
+      );
+      if (!heading) return "";
+      let p = heading.nextElementSibling;
+      let text = "";
+      while (p && p.tagName.toLowerCase() === "p") {
+        text += p.innerText + " ";
+        p = p.nextElementSibling;
+      }
+      return text.trim();
+    }
+
+    // Get keywords
+    function getKeywords() {
+      const possible = [".keywords", ".kwd-group", "#keywords"];
+      for (const sel of possible) {
+        const el = document.querySelector(sel);
+        if (el) return el.innerText.replace(/Keywords:/i, "").trim();
+      }
+      return "";
+    }
+
+    const abstract = getAbstract();
+    const introduction = getSectionTextByHeadingKeywords([
+      "introduction",
+      "background",
+    ]);
+    const results = getSectionTextByHeadingKeywords([
+      "results",
+      "results and discussion",
+      "findings",
+    ]);
+    const conclusion = getSectionTextByHeadingKeywords([
+      "conclusion",
+      "conclusions",
+      "discussion",
+    ]);
+    const keywords = getKeywords();
+
+    return { abstract, introduction, results, conclusion, keywords };
   });
 
   await browser.close();
-  return abstract;
+  return data;
 }
 
-// Read CSV and process
-const results = [];
+const rows = [];
 fs.createReadStream(inputCsv, { encoding: "utf8" })
   .pipe(csv({ mapHeaders: ({ header }) => header.trim() }))
-  .on("data", (row) => results.push(row))
+  .on("data", (row) => rows.push(row))
   .on("end", async () => {
-    console.log("CSV read complete. Fetching abstracts...");
+    console.log("CSV read complete. Fetching sections...");
 
     const outputData = [];
 
-    for (let i = 0; i < results.length; i++) {
-      const row = results[i];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
       const title = row["Title"]?.trim() || `Untitled ${i + 1}`;
       const link = row["Link"]?.trim();
       if (!link) {
@@ -47,16 +94,17 @@ fs.createReadStream(inputCsv, { encoding: "utf8" })
         continue;
       }
 
-      console.log(`Fetching (${i + 1}/${results.length}): ${title}`);
-      const abstract = await fetchAbstractPMC(link);
+      console.log(`Fetching (${i + 1}/${rows.length}): ${title}`);
+      try {
+        const sections = await fetchSectionsPMC(link);
+        outputData.push({ title, link, ...sections });
+      } catch (err) {
+        console.warn(`Failed to fetch ${title}: ${err.message}`);
+      }
 
-      outputData.push({ title, link, abstract });
-
-      // NCBI rate limit (~3 requests/sec)
       await new Promise((resolve) => setTimeout(resolve, 350));
     }
 
-    // Write JSON file at the end
     fs.writeFileSync(outputJson, JSON.stringify(outputData, null, 2), "utf-8");
-    console.log("Done! JSON saved as:", outputJson);
+    console.log("Data saved as:", outputJson);
   });
