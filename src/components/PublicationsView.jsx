@@ -32,13 +32,13 @@ const PublicationsView = (props) => {
       {openGraphModel && (
         <div className="fixed inset-0 bg-[#00000063]  flex items-center justify-center z-50 p-4">
           <KnowledgeGraphView
-            paper={paper} // Pass paper data if the graph is paper-specific
+            paper={paper}
             close={() => setOpenGraphModel(false)}
           />
         </div>
       )}
 
-      <div className="bg-white x w-full  rounded-2xl p-6 md:p-8 md:pt-0 shadow-2xl overflow-y-auto transform transition-all duration-300">
+      <div className="card w-full h-screen px-6 md:px-8 md:pt-0 overflow-y-auto transform transition-all duration-300">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between border-b pb-4 pt-6 mb-4 sticky top-0 bg-white z-10">
           <div className="flex-1 pr-4">
@@ -54,7 +54,7 @@ const PublicationsView = (props) => {
             <div className="flex gap-2 items-center">
               <button
                 onClick={() => setOpenGraphModel(true)}
-                className="p-2 text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition duration-150 ease-in-out shadow-sm flex items-center gap-2"
+                className="btn-ghost inline-flex items-center gap-2"
                 aria-label="View Knowledge Graph"
                 title="View Knowledge Graph"
               >
@@ -70,7 +70,7 @@ const PublicationsView = (props) => {
                   if (params?.id || location?.state?.paper) navigate(-1);
                   else if (props.close) props.close(false);
                 }}
-                className="p-2 text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-150 ease-in-out flex items-center gap-2"
+                className="btn-ghost inline-flex items-center gap-2"
                 aria-label="Close"
                 title="Close"
               >

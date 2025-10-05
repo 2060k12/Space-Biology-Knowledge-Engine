@@ -1,15 +1,16 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const NavigationBar = () => {
   return (
     <nav className="flex items-center justify-between bg-white text-gray-800 shadow-md py-4 px-4 sm:px-8 md:px-16 sticky top-0 z-40">
       {/* 1. Logo/Main Title */}
-      <a
-        href="/"
+      <Link
+        to="/"
         className="text-2xl font-bold text-blue-700 hover:text-blue-800 transition duration-150 ease-in-out"
       >
-        BioNER
-      </a>
+        BioEngine
+      </Link>
 
       {/* 2. Secondary Title/Context (Right Side) */}
       <div className="hidden sm:block">

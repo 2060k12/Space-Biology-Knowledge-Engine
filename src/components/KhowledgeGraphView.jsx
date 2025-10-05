@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import dataset from "../../data.json";
+
 import {
   RiNodeTree,
   RiFilter2Line,
@@ -20,13 +22,42 @@ const KnowledgeGraphView = () => {
   const [showSelected, setShowSelected] = useState(true);
   const [search, setSearch] = useState("");
 
+  // derive counts from dataset
+  const totalPapers = dataset.length;
+  const topicCounts = {};
+  const authorCounts = {};
+  dataset.forEach((d) => {
+    if (d.topic) {
+      d.topic
+        .toString()
+        .split(/[,;\n]/)
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .forEach((t) => (topicCounts[t] = (topicCounts[t] || 0) + 1));
+    }
+    if (d.author) {
+      const a = d.author.toString().trim();
+      if (a) authorCounts[a] = (authorCounts[a] || 0) + 1;
+    }
+  });
+
   const nodeTypes = [
-    { name: "Paper", color: "bg-blue-500", count: 85 },
-    { name: "Gene/Protein", color: "bg-green-500", count: 320 },
-    { name: "Organism", color: "bg-purple-500", count: 12 },
-    { name: "Topic", color: "bg-yellow-500", count: 40 },
-    { name: "Experiment", color: "bg-red-500", count: 15 },
+    { name: "Paper", color: "bg-blue-500", count: totalPapers },
+    {
+      name: "Topic",
+      color: "bg-yellow-500",
+      count: Object.keys(topicCounts).length,
+    },
+    {
+      name: "Authors",
+      color: "bg-green-500",
+      count: Object.keys(authorCounts).length,
+    },
   ];
+
+  const topTopics = Object.entries(topicCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
 
   // Placeholder selected node information
   const selectedNode = {
@@ -38,8 +69,8 @@ const KnowledgeGraphView = () => {
   };
 
   return (
-    <div className="w-full mx-auto max-w-7xl py-6 px-4 sm:px-8 md:px-16  pt-12">
-      <div className="flex items-center justify-between mb-4 bg-white w-full p-4 rounded-2xl">
+    <div className="w-full mx-auto py-6 px-4 sm:px-8 md:px-16 pt-12 bg-white">
+      <div className="flex items-center justify-between mb-4 w-full p-4">
         <div className="flex items-center space-x-3 ">
           <button
             onClick={() => navigate(-1)}
@@ -67,7 +98,7 @@ const KnowledgeGraphView = () => {
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Sidebar: Controls, Filters, and Legend */}
-        <aside className="lg:w-1/4 p-4 bg-white rounded-xl shadow-lg border border-gray-100 flex-shrink-0">
+        <aside className="lg:w-1/4 p-4 card flex-shrink-0">
           {/* Search Bar */}
           <div className="mb-4">
             <h2 className="text-lg font-bold text-gray-800 mb-2 flex items-center">
@@ -82,12 +113,10 @@ const KnowledgeGraphView = () => {
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
             />
             <div className="mt-2 flex items-center gap-2">
-              <button className="text-sm px-3 py-1 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700">
-                Search
-              </button>
+              <button className="btn-primary text-sm">Search</button>
               <button
                 onClick={() => setSearch("")}
-                className="text-sm px-3 py-1 bg-gray-100 rounded-md border border-gray-200 hover:bg-gray-50"
+                className="btn-ghost text-sm"
               >
                 Clear
               </button>
@@ -149,7 +178,7 @@ const KnowledgeGraphView = () => {
                     <span className="flex items-center">
                       <span
                         className={`w-3 h-3 ${type.color} rounded-full mr-2`}
-                      ></span>
+                      />
                       {type.name}
                     </span>
                     <span className="text-gray-500 text-xs">{type.count}</span>
@@ -188,6 +217,27 @@ const KnowledgeGraphView = () => {
                 <p className="text-sm mt-2 text-gray-500">
                   (Interactive graph will render here)
                 </p>
+              </div>
+            </div>
+
+            {/* Small insights panel */}
+            <div className="absolute left-4 bottom-4 z-30 max-w-xs w-full">
+              <div className="card p-3">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  Top Topics
+                </h4>
+                <ul className="mt-2 text-sm text-gray-600 space-y-1">
+                  {topTopics.length ? (
+                    topTopics.map(([t, c]) => (
+                      <li key={t} className="flex items-center justify-between">
+                        <span>{t}</span>
+                        <span className="text-xs text-gray-400">{c}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-xs text-gray-400">No topics found</li>
+                  )}
+                </ul>
               </div>
             </div>
 

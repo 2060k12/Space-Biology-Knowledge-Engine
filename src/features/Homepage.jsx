@@ -43,7 +43,7 @@ const Homepage = () => {
     });
   }, [query]);
 
-  const recent = filtered.slice(0, 8);
+  const recent = filtered.slice(0, 48);
 
   const navigate = useNavigate();
 
@@ -86,7 +86,7 @@ const Homepage = () => {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="card p-4">
           <h3 className="text-sm text-gray-500">Total Papers</h3>
           <div className="mt-2 text-2xl font-bold text-gray-900">
             {stats.total}
@@ -95,16 +95,14 @@ const Homepage = () => {
             Papers indexed in dataset
           </p>
         </div>
-
-        <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="card p-4">
           <h3 className="text-sm text-gray-500">Unique Authors</h3>
           <div className="mt-2 text-2xl font-bold text-gray-900">
             {stats.authors}
           </div>
           <p className="text-xs text-gray-400 mt-1">Distinct author names</p>
         </div>
-
-        <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="card p-4">
           <h3 className="text-sm text-gray-500">Microgravity Papers</h3>
           <div className="mt-2 text-2xl font-bold text-indigo-600">
             {stats.microgravity}
@@ -135,7 +133,7 @@ const Homepage = () => {
           <div className="space-y-4">
             {recent.map((each) => (
               <div
-                className="bg-white rounded-xl p-4 shadow hover:shadow-md border border-gray-100 cursor-pointer"
+                className="card p-4 cursor-pointer hover:shadow-md"
                 key={nanoid()}
                 onClick={() => {
                   // navigate to paper view; pass the paper in location state for convenience

@@ -12,7 +12,8 @@ function App() {
         <div className="fixed w-full z-20 ">
           <NavigationBar />
         </div>
-        <div className="mt-24 z-10">
+        {/* add top padding so fixed nav doesn't overlap page content */}
+        <div className="pt-20 z-10">
           <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/graph" element={<KnowledgeGraphView />} />
