@@ -1,85 +1,201 @@
 import Chip from "../components/Chip";
 import data from "../../data.json";
-import PublicationsView from "../components/PublicationsView";
-import { useRef, useState } from "react";
+import { useRef, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { nanoid } from "nanoid";
+import {
+  RiFileList3Line,
+  RiUpload2Line,
+  RiNodeTree,
+  RiSearchLine,
+} from "@remixicon/react";
 
 const Homepage = () => {
-  const [openModel, setOpenModel] = useState(false);
-  const [clickedPaper, setClickedPaper] = useState(null);
+  const [query, setQuery] = useState("");
   const backgroundRef = useRef(null);
 
+  // Derived stats
+  const stats = useMemo(() => {
+    const total = data.length;
+    const authors = new Set();
+    let microgravityCount = 0;
+    data.forEach((d) => {
+      if (d.author) authors.add(d.author);
+      if (d.abstract && d.abstract.toLowerCase().includes("microgravity"))
+        microgravityCount++;
+    });
+    return {
+      total,
+      authors: authors.size,
+      microgravity: microgravityCount,
+    };
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!query) return data;
+    const q = query.toLowerCase();
+    return data.filter((d) => {
+      return (
+        (d.title && d.title.toLowerCase().includes(q)) ||
+        (d.abstract && d.abstract.toLowerCase().includes(q)) ||
+        (d.author && d.author.toLowerCase().includes(q))
+      );
+    });
+  }, [query]);
+
+  const recent = filtered.slice(0, 8);
+
+  const navigate = useNavigate();
+
   return (
-    <>
-      {openModel && (
-        <div className="fixed inset-0 bg-[#00000076]  flex items-center justify-center z-50 p-4">
-          <PublicationsView
-            paper={clickedPaper}
-            close={(e) => {
-              setOpenModel(e);
-              setClickedPaper(null);
-            }}
-          />
-        </div>
-      )}
-
-      <div
-        className="relative w-full px-4 sm:px-8 md:px-16 pb-10 mx-auto max-w-7xl"
-        ref={backgroundRef}
-      >
-        {/* Header and Filter */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-4 sm:mb-0">
-            Research Papers
+    <div
+      className="relative w-full px-4 sm:px-8 md:px-16 pb-10 mx-auto max-w-7xl"
+      ref={backgroundRef}
+    >
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
+            Dashboard
           </h1>
-
-          <select className="border border-gray-300 rounded-lg p-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
-            <option>Filter by Year</option>
-            <option>2025</option>
-            <option>2024</option>
-            <option>2023</option>
-            <option>2022</option>
-          </select>
+          <p className="text-sm text-gray-500 mt-1">
+            Overview of research papers and quick actions
+          </p>
         </div>
 
-        <div className="py-4 mb-6 border-b border-gray-200">
-          <div className="flex flex-wrap gap-2">
-            {/* The Chip component itself should be styled better (e.g., rounded, light background, clear active state) */}
-            <Chip name="All" isActive={true} />
-            <Chip name="Microgravity" />
-            <Chip name="Radiation" />
-            <Chip name="Bone Density" />
-            <Chip name="Metabolism" />
-            <Chip name="Cell Biology" />
-            {/* ... other chips */}
+        <div className="flex gap-2 items-center">
+          <div className="relative">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search papers, authors, or abstracts..."
+              className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 w-72 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
+            <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          </div>
+
+          <button
+            className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50"
+            onClick={() => window.scrollTo({ top: 9999, behavior: "smooth" })}
+          >
+            <RiNodeTree />
+            <span className="text-sm">Open Graph</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-sm text-gray-500">Total Papers</h3>
+          <div className="mt-2 text-2xl font-bold text-gray-900">
+            {stats.total}
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Papers indexed in dataset
+          </p>
+        </div>
+
+        <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-sm text-gray-500">Unique Authors</h3>
+          <div className="mt-2 text-2xl font-bold text-gray-900">
+            {stats.authors}
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Distinct author names</p>
+        </div>
+
+        <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-sm text-gray-500">Microgravity Papers</h3>
+          <div className="mt-2 text-2xl font-bold text-indigo-600">
+            {stats.microgravity}
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Papers mentioning "microgravity"
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Papers list */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Recent Papers
+            </h2>
+            <div className="flex gap-2">
+              <Chip name="All" isActive={!query} onClick={() => setQuery("")} />
+              <Chip
+                name="Microgravity"
+                onClick={() => setQuery("microgravity")}
+              />
+              <Chip name="Bone" onClick={() => setQuery("bone")} />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {recent.map((each) => (
+              <div
+                className="bg-white rounded-xl p-4 shadow hover:shadow-md border border-gray-100 cursor-pointer"
+                key={nanoid()}
+                onClick={() => {
+                  // navigate to paper view; pass the paper in location state for convenience
+                  navigate(`/paper/${encodeURIComponent(each.title)}`, {
+                    state: { paper: each },
+                  });
+                }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {each.title}
+                    </h3>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {each.author || "Unknown author"} •{" "}
+                      <span className="text-gray-400">Link</span>
+                    </div>
+                  </div>
+                  <div className="ml-4 text-sm text-gray-400">PDF</div>
+                </div>
+
+                <p className="text-sm text-gray-600 mt-3 line-clamp-3">
+                  {each.abstract}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 pb-20">
-          {data.map((each) => (
-            <div
-              className="bg-white rounded-xl p-5 shadow-lg hover:shadow-xl transition duration-300 ease-in-out cursor-pointer transform hover:-translate-y-0.5 border border-gray-100 hover:ring-2 hover:ring-blue-400"
-              key={nanoid()}
-              onClick={() => {
-                setOpenModel(true);
-                setClickedPaper(each);
-                console.log("clicked");
-              }}
-            >
-              <h1 className="text-xl font-bold text-blue-700 mb-1">
-                {each.title}
-              </h1>
-              <h2 className="text-base font-medium text-gray-600 mb-2">
-                {each.author || "Pranish Pathak, Utsav Poudel"}
-              </h2>
-              <h2 className="text-sm text-gray-500 line-clamp-3">
-                {each.abstract}
-              </h2>
+        {/* Right column: quick links / activity */}
+        <aside className="space-y-4">
+          <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-sm text-gray-500">Quick Actions</h3>
+            <div className="mt-3 flex flex-col gap-2">
+              <button className="text-sm px-3 py-2 bg-indigo-600 text-white rounded-md">
+                New Search
+              </button>
+              <button className="text-sm px-3 py-2 bg-white border border-gray-200 rounded-md">
+                Export CSV
+              </button>
+              <button
+                className="text-sm px-3 py-2 bg-white border border-gray-200 rounded-md"
+                onClick={() => window.location.reload()}
+              >
+                Refresh
+              </button>
             </div>
-          ))}
-        </div>
+          </div>
+
+          <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-sm text-gray-500">Recent Activity</h3>
+            <ul className="mt-3 space-y-2 text-sm text-gray-600">
+              <li>Indexed {stats.total} papers</li>
+              <li>{stats.microgravity} papers mentioning microgravity</li>
+              <li>Last import: Today</li>
+            </ul>
+          </div>
+        </aside>
       </div>
-    </>
+    </div>
   );
 };
 
