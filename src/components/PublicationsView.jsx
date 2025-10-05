@@ -5,16 +5,15 @@ import {
   RiFileDownloadLine,
   RiShareLine,
 } from "@remixicon/react"; // icons for actions
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import KnowledgeGraphView from "./KhowledgeGraphView";
 import Chip from "./Chip";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import dataset from "../../data.json";
 
 const PublicationsView = (props) => {
-  useEffect(() => {}, []);
+  const containerRef = useRef(null);
   const [openGraphModel, setOpenGraphModel] = useState(false);
-  const [abstractOpen, setAbstractOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const params = useParams();
@@ -27,6 +26,15 @@ const PublicationsView = (props) => {
     : null;
   const paper = paperFromState || paperFromParam || props.paper || null;
 
+  useEffect(() => {
+    try {
+      if (containerRef.current)
+        containerRef.current.scrollTo({ top: 0, behavior: "auto" });
+    } catch (err) {
+      console.debug("scroll to top failed", err);
+    }
+  }, [paper]);
+
   return (
     <>
       {openGraphModel && (
@@ -38,7 +46,10 @@ const PublicationsView = (props) => {
         </div>
       )}
 
-      <div className="card w-full h-screen px-6 md:px-8 md:pt-0 overflow-y-auto transform transition-all duration-300">
+      <div
+        ref={containerRef}
+        className="card w-full h-screen px-6 md:px-8 md:pt-0 overflow-y-auto transform transition-all duration-300"
+      >
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between border-b pb-4 pt-6 mb-4 sticky top-0 bg-white z-10">
           <div className="flex-1 pr-4">
@@ -183,45 +194,19 @@ const PublicationsView = (props) => {
 
         {/* Abstract/Key Findings Section */}
         <section className="mb-6">
-          <div className="flex items-center justify-between">
+          <div className="mb-4">
             <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-3">
               Abstract / Key Findings
             </h2>
-            <button
-              onClick={() => setAbstractOpen((s) => !s)}
-              className="text-sm text-indigo-600 hover:underline"
-            >
-              {abstractOpen ? "Hide" : "Show"}
-            </button>
-          </div>
-
-          <div
-            className={`p-4 bg-gray-50 border border-gray-200 rounded-lg transition-all ${
-              abstractOpen ? "max-h-[2000px]" : "max-h-40 overflow-hidden"
-            }`}
-          >
-            <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-              {paper?.abstract || `No abstract available.`}
-            </p>
-            {!abstractOpen && (
-              <div className="mt-3 text-sm text-gray-500">
-                Click "Show" to read the full abstract.
-              </div>
-            )}
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                {paper?.abstract || `No abstract available.`}
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Generated Summary Section */}
-        <section>
-          <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-3">
-            Generated Summary
-          </h2>
-          <div className="p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
-            <p className="text-gray-700 leading-relaxed">
-              {paper?.summary || "No summary generated yet."}
-            </p>
-          </div>
-        </section>
+        {/* generated summary removed - showing full abstract only */}
 
         {/* small transient copied indicator */}
         {copied && (
