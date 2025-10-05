@@ -1,4 +1,4 @@
-import AiSearch from "./components/AiSearch";
+import SearchBar from "./components/SearchBar";
 import NavigationBar from "./components/NavigationBar";
 import Homepage from "./features/Homepage";
 import KnowledgeGraphView from "./components/KhowledgeGraphView";
@@ -21,7 +21,7 @@ function App() {
           </Routes>
 
           <div className="fixed bottom-4 w-full px-2 flex justify-center z-10 ">
-            <AiSearch />
+            <SearchBar />
           </div>
         </div>
       </div>

@@ -10,7 +10,6 @@ const SearchModal = () => {
         <Chip name="Knowledge Graphs" />
       </div>
 
-      {/* Papers */}
       <div className="bg-gray-200 p-2 rounded-xl font-bold">
         <h1>Paper Name</h1>
       </div>

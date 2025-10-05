@@ -4,7 +4,7 @@ import {
   RiExternalLinkLine,
   RiFileDownloadLine,
   RiShareLine,
-} from "@remixicon/react"; // icons for actions
+} from "@remixicon/react";
 import { useEffect, useState, useRef } from "react";
 import KnowledgeGraphView from "./KhowledgeGraphView";
 import Chip from "./Chip";
@@ -19,7 +19,6 @@ const PublicationsView = (props) => {
   const params = useParams();
   const location = useLocation();
 
-  // Resolve paper: prefer location.state.paper, then URL param lookup, then props.paper
   const paperFromState = location?.state?.paper;
   const paperFromParam = params?.id
     ? dataset.find((d) => encodeURIComponent(d.title) === params.id)
@@ -206,9 +205,6 @@ const PublicationsView = (props) => {
           </div>
         </section>
 
-        {/* generated summary removed - showing full abstract only */}
-
-        {/* small transient copied indicator */}
         {copied && (
           <div className="fixed right-6 bottom-6 bg-black text-white px-4 py-2 rounded-md shadow-lg">
             Citation copied

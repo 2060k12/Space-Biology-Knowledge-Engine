@@ -122,15 +122,20 @@ const KnowledgeGraphView = (props) => {
     // clear previous
     d3.select(svgEl).selectAll("*").remove();
 
-    const svg = d3
-      .select(svgEl)
-      .attr("viewBox", [0, 0, width, height])
-      .call(
-        d3
-          .zoom()
-          .scaleExtent([0.2, 4])
-          .on("zoom", (event) => g.attr("transform", event.transform))
-      );
+    const svg = d3.select(svgEl).attr("viewBox", [0, 0, width, height]);
+
+    // color scale for topics so they vary, instead of a single color
+    const topicColor = d3.scaleOrdinal(d3.schemeSet3);
+
+    const zoomBehavior = d3
+      .zoom()
+      .scaleExtent([0.2, 4])
+      .on("zoom", (event) => {
+        g.attr("transform", event.transform);
+        updateLabelVisibility(event.transform.k);
+      });
+
+    svg.call(zoomBehavior);
 
     const g = svg.append("g");
 
@@ -170,13 +175,11 @@ const KnowledgeGraphView = (props) => {
     node
       .append("circle")
       .attr("r", (d) => (d.type === "paper" ? 6 : d.type === "topic" ? 8 : 7))
-      .attr("fill", (d) =>
-        d.type === "paper"
-          ? "#2563eb"
-          : d.type === "topic"
-          ? "#f59e0b"
-          : "#10b981"
-      )
+      .attr("fill", (d) => {
+        if (d.type === "paper") return "#2563eb"; // blue for papers
+        if (d.type === "topic") return topicColor(d.label); // varied colors for topics
+        return "#10b981"; // green for authors
+      })
       .attr("stroke", "#fff")
       .attr("stroke-width", 1.5)
       .on("click", (event, d) => {
@@ -191,13 +194,32 @@ const KnowledgeGraphView = (props) => {
         }
       });
 
-    node
+    // add labels for all nodes; paper labels will be hidden until zoomed in
+    const labels = node
       .append("text")
-      .text((d) => (d.type === "paper" ? "" : d.label))
+      .text((d) => d.label)
       .attr("x", 10)
       .attr("y", 4)
       .attr("font-size", 11)
-      .attr("fill", "#374151");
+      .attr("fill", "#374151")
+      .style("pointer-events", "none");
+
+    // show/hide labels depending on zoom level
+    function updateLabelVisibility(k) {
+      // show paper labels only when sufficiently zoomed in
+      labels.style("display", (d) => {
+        if (d.type === "paper") return k >= 1.4 ? "block" : "none";
+        // always show topic/author labels
+        return "block";
+      });
+
+      // scale label font size a bit based on zoom (clamped for readability)
+      labels.attr("font-size", (d) => {
+        const base = d.type === "paper" ? 10 : 11;
+        const scaled = Math.max(8, Math.min(20, base * k));
+        return scaled;
+      });
+    }
 
     const simulation = d3
       .forceSimulation(nodes)
@@ -221,6 +243,9 @@ const KnowledgeGraphView = (props) => {
       });
     // expose simulation to outer scope for immediate control (stop on close)
     simulationRef.current = simulation;
+
+    // initialize label visibility for default zoom
+    updateLabelVisibility(1);
 
     // simple resize handling
     const handleResize = () => {
