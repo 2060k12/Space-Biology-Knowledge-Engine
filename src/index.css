@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --muted: #6b7280;
+  --accent: #4f46e5; /* indigo-600 */
+  --accent-600: #4338ca;
+  --card-border: rgba(15, 23, 42, 0.04);
+  --card-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+}
+
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reusable card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: 12px;
+}
+
+/* Primary button */
+.btn-primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent-600));
+  color: white;
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  color: inherit;
+  padding: 0.45rem 0.8rem;
+  border-radius: 10px;
+}
+
+/* chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.27rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent-600);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+}
+
+/* small utility */
+.container-wide {
+  max-width: 1150px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* smooth scrolling */
+* {
+  scroll-behavior: smooth;
+}
